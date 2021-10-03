@@ -9,26 +9,26 @@ import { JwtHelperService } from '@auth0/angular-jwt';
   providedIn: 'root'
 })
 export class AuthenticationService {
-  private host = environment.apiUrl;
+  public host = environment.apiUrl;
   private token: string;
   private loggedInUsername: string;
   private jwtHelper = new JwtHelperService();
 
   constructor(private http: HttpClient) { }
 
-  public login(user: User): Observable<HttpResponse<any> | HttpErrorResponse> {
-    return this.http.post<HttpResponse<any> | HttpErrorResponse>
+  public login(user: User): Observable<HttpResponse<User> | HttpErrorResponse> {
+    return this.http.post<User>
       (`${this.host}/user/login`, user, { observe: 'response' });
   }
 
-  public register(user: User): Observable<HttpResponse<any> | HttpErrorResponse> {
-    return this.http.post<HttpResponse<any> | HttpErrorResponse>
+  public register(user: User): Observable<User | HttpErrorResponse> {
+    return this.http.post<User | HttpErrorResponse>
       (`${this.host}/user/register`, user);
   }
 
   public logOut(): void {
-    this.token = null;
-    this.loggedInUsername = null;
+    this.token = null!;
+    this.loggedInUsername = null!;
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     localStorage.removeItem('users');
@@ -52,15 +52,15 @@ export class AuthenticationService {
     }
   }
 
-  public loadToken(): User {
-    return JSON.parse(localStorage.getItem('token')!);
+  public loadToken(): void {
+    this.token = localStorage.getItem('token');
   }
 
   public getToken(): string {
     return this.token;
   }
 
-  public isLoggedIn(): boolean {
+  public isUserLoggedIn(): boolean {
     this.loadToken();
     if (this.token !== null && this.token !== '') {
       if (this.jwtHelper.decodeToken(this.token).sub != null || '') {//"sub == subject"
@@ -70,9 +70,11 @@ export class AuthenticationService {
         }
       } else {
         this.logOut();
-        return false;
       }
+
     }
+    return false;
+
 
   }
 }
